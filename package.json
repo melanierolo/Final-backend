@@ -24,6 +24,7 @@
   },
   "homepage": "https://github.com/melanierolo/Final-backend/tree/main#readme",
   "dependencies": {
+    "dotenv": "^16.3.1",
     "express": "^4.18.2",
     "mongodb": "^6.1.0",
     "mongoose": "^7.6.2",
