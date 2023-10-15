@@ -1,0 +1,33 @@
+{
+  "name": "ecommerce",
+  "version": "1.0.0",
+  "description": "Final project for the Coderhouse  course called Backend",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "dev": "nodemon src/index.js",
+    "start": "node src/index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/melanierolo/Final-backend.git#main"
+  },
+  "keywords": [
+    "mongoDB",
+    "express",
+    "nodeJS"
+  ],
+  "author": "Melanie Rodas",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/melanierolo/Final-backend/issues"
+  },
+  "homepage": "https://github.com/melanierolo/Final-backend/tree/main#readme",
+  "dependencies": {
+    "express": "^4.18.2",
+    "mongodb": "^6.1.0",
+    "mongoose": "^7.6.2",
+    "morgan": "^1.10.0",
+    "nodemon": "^3.0.1"
+  }
+}
