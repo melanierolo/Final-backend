@@ -48,6 +48,7 @@ class ProductManager {
       }
 
       // Get the total number of products in the database based on the filter
+      // estimatedDocumentCount: improve performance when dealing with large datasets
       const totalProducts = await Product.estimatedDocumentCount(filter);
       const totalPages = Math.ceil(totalProducts / limit);
 
