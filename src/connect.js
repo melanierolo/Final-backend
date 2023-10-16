@@ -6,6 +6,7 @@ export async function connectDB() {
     await mongoose.connect(dbUrl, {
       useNewUrlParser: true,
       useUnifiedTopology: true,
+      dbName: 'ecommerce-coderhouse(FP)', // Specify the database name here
     });
     console.log('--- Connected to the database');
     return mongoose.connection;

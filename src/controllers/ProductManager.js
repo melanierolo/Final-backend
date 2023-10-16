@@ -1,18 +1,15 @@
-import { promises as fs } from 'fs';
-
+import Product from '../models/productModel.js';
 class ProductManager {
   constructor() {
-    this.patch = './src/models/products.json';
     this.products = [];
   }
-  // automatic id
+
   static id = 0;
 
   addProduct = async (title, description, price, thumbnailImg, code, stock) => {
-    // automatic id
     ProductManager.id += 1;
-    // Create an instance of the class inside the method like this:
-    let newProduct = {
+
+    const newProduct = new Product({
       title,
       description,
       price,
@@ -20,43 +17,113 @@ class ProductManager {
       code,
       stock,
       id: ProductManager.id,
-    };
-    this.products.push(newProduct);
-    console.log(newProduct);
-    //access the 'path' property of the new instance:
-    await fs.writeFile(this.patch, JSON.stringify(this.products));
-  };
+    });
 
-  readProducts = async () => {
-    let result = await fs.readFile(this.patch, 'utf-8');
-    return JSON.parse(result);
+    try {
+      await newProduct.save();
+      console.log(newProduct);
+    } catch (error) {
+      console.error(error);
+    }
   };
+  /**
+   * Retrieves a list of products with optional pagination, sorting, and filtering.
+   * @param {number} limit - The maximum number of products to return (default is 10).
+   * @param {number} page - The page number to retrieve (default is 1).
+   * @param {string} sort - The sorting order ('asc' for ascending, 'desc' for descending).
+   * @param {string} query - The type of element to search for (e.g., category or availability).
+   * @returns {Object} - An object containing the list of products, pagination details, and status.
+   */
+  getProducts = async (limit = 10, page = 1, sort, query) => {
+    try {
+      // Construct the filter based on the query parameter (e.g., category or availability)
 
-  getProducts = async () => {
-    let response = await this.readProducts();
-    return console.log(response);
+      let filter = {};
+      if (query) {
+        if (query === 'in stock' || query === 'out of stock') {
+          filter = { availability: query }; // Filter by availability
+        } else {
+          filter = { category: query }; // Filter by category
+        }
+      }
+
+      // Get the total number of products in the database based on the filter
+      const totalProducts = await Product.estimatedDocumentCount(filter);
+      const totalPages = Math.ceil(totalProducts / limit);
+
+      const skip = (page - 1) * limit;
+      let products = await Product.find(filter).skip(skip).limit(limit);
+
+      if (sort) {
+        products = await Product.find(filter)
+          .sort({ price: sort === 'asc' ? 1 : -1 })
+          .skip(skip)
+          .limit(limit);
+      }
+
+      const hasNextPage = page < totalPages;
+      const hasPrevPage = page > 1;
+      const prevPage = hasPrevPage ? page - 1 : null;
+      const nextPage = hasNextPage ? page + 1 : null;
+      const prevLink = hasPrevPage
+        ? `/api/products?limit=${limit}&page=${prevPage}`
+        : null;
+      const nextLink = hasNextPage
+        ? `/api/products?limit=${limit}&page=${nextPage}`
+        : null;
+
+      return {
+        status: 'success',
+        payload: products,
+        totalPages,
+        prevPage,
+        nextPage,
+        page,
+        hasPrevPage,
+        hasNextPage,
+        prevLink,
+        nextLink,
+      };
+    } catch (error) {
+      console.error(error);
+      return { status: 'error', payload: [] };
+    }
   };
 
   getProductById = async (id) => {
-    let response = await this.readProducts();
-    const isProductExist = response.find((product) => product.id === id);
-    return isProductExist ? console.log('Exists') : console.log('Not found');
+    try {
+      const product = await Product.findOne({ id });
+      if (product) {
+        console.log('Exists:', product);
+      } else {
+        console.log('Not found');
+      }
+    } catch (error) {
+      console.error(error);
+    }
   };
+
   deleteProductById = async (id) => {
-    let response = await this.readProducts();
-    const productFilter = response.filter((product) => product.id !== id);
-    await fs.writeFile(this.patch, JSON.stringify(productFilter));
-    console.log('product deleted');
+    try {
+      await Product.deleteOne({ id });
+      console.log('Product deleted');
+    } catch (error) {
+      console.error(error);
+    }
   };
 
   updateProducts = async ({ id, ...product }) => {
-    await this.deleteProductById(id);
-    let productOld = await this.readProducts();
-    let productsEdit = [{ ...product, id }, ...productOld];
-    await fs.writeFile(this.patch, JSON.stringify(productsEdit));
+    try {
+      const updatedProduct = await Product.findOneAndUpdate({ id }, product, {
+        new: true,
+      });
+      console.log(updatedProduct);
+    } catch (error) {
+      console.error(error);
+    }
   };
 }
 
 const products = new ProductManager();
 
-export default ProductManager;
+export default products;
