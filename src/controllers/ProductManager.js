@@ -1,4 +1,5 @@
-import Product from '../models/productModel.js';
+import ProductDao from '../dao/productDao.js';
+
 class ProductManager {
   constructor() {
     this.products = [];
@@ -6,7 +7,7 @@ class ProductManager {
 
   static id = 0;
 
-  addProduct = async (title, description, price, thumbnailImg, code, stock) => {
+  /*addProduct = async (title, description, price, thumbnailImg, code, stock) => {
     ProductManager.id += 1;
 
     const newProduct = new Product({
@@ -25,7 +26,7 @@ class ProductManager {
     } catch (error) {
       console.error(error);
     }
-  };
+  };*/
   /**
    * Retrieves a list of products with optional pagination, sorting, and filtering.
    * @param {number} limit - The maximum number of products to return (default is 10).
@@ -36,8 +37,10 @@ class ProductManager {
    */
   getProducts = async (limit = 10, page = 1, sort, query) => {
     try {
-      // Construct the filter based on the query parameter (e.g., category or availability)
+      // Convert page to a number
+      page = parseInt(page);
 
+      // Construct the filter based on the query parameter (e.g., category or availability)
       let filter = {};
       if (query) {
         if (query === 'in stock' || query === 'out of stock') {
@@ -46,45 +49,8 @@ class ProductManager {
           filter = { category: query }; // Filter by category
         }
       }
-
-      // Get the total number of products in the database based on the filter
-      // estimatedDocumentCount: improve performance when dealing with large datasets
-      const totalProducts = await Product.estimatedDocumentCount(filter);
-      const totalPages = Math.ceil(totalProducts / limit);
-
-      const skip = (page - 1) * limit;
-      let products = await Product.find(filter).skip(skip).limit(limit);
-
-      if (sort) {
-        products = await Product.find(filter)
-          .sort({ price: sort === 'asc' ? 1 : -1 })
-          .skip(skip)
-          .limit(limit);
-      }
-
-      const hasNextPage = page < totalPages;
-      const hasPrevPage = page > 1;
-      const prevPage = hasPrevPage ? page - 1 : null;
-      const nextPage = hasNextPage ? page + 1 : null;
-      const prevLink = hasPrevPage
-        ? `/api/products?limit=${limit}&page=${prevPage}`
-        : null;
-      const nextLink = hasNextPage
-        ? `/api/products?limit=${limit}&page=${nextPage}`
-        : null;
-
-      return {
-        status: 'success',
-        payload: products,
-        totalPages,
-        prevPage,
-        nextPage,
-        page,
-        hasPrevPage,
-        hasNextPage,
-        prevLink,
-        nextLink,
-      };
+      let result = await ProductDao.getProducts(page, filter, sort, limit);
+      return result;
     } catch (error) {
       console.error(error);
       return { status: 'error', payload: [] };
@@ -93,14 +59,15 @@ class ProductManager {
 
   getProductById = async (id) => {
     try {
-      const product = await Product.findOne({ id });
+      const product = await ProductDao.getProductById(id);
+
       if (product) {
-        console.log('Exists:', product);
+        return product;
       } else {
-        console.log('Not found');
+        return 'Not found';
       }
     } catch (error) {
-      console.error(error);
+      return error;
     }
   };
 

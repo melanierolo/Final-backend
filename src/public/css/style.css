@@ -1,0 +1,19 @@
+body {
+  background-color: white;
+}
+
+.jumbotron {
+  margin: 0;
+}
+
+/*background image*/
+.indexWelcome {
+  height: calc(100vh - 75px);
+  background-image: url('../img/home_welcome.jpg'); /* Reemplaza con la ruta de tu imagen */
+  background-size: cover;
+  color: #ffffff; /* Color del texto para que contraste con el fondo */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+}

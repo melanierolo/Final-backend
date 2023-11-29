@@ -28,8 +28,8 @@ router.post('/', async (req, res) => {
 
 router.get('/:pid', async (req, res) => {
   const pid = req.params.pid;
-  await ProductManager.getProductById(pid);
-  res.send();
+  const result = await ProductManager.getProductById(pid);
+  res.json(result);
 });
 
 router.put('/:pid', async (req, res) => {
